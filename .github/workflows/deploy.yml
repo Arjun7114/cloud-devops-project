@@ -34,7 +34,24 @@ jobs:
           pip install -r requirements.txt
           pytest
 
-      # 4. Log in to AWS using the secrets from the GitHub vault.
+      # 4. Build the image locally FIRST, so Trivy can scan it before we push.
+      - name: Build image locally for scanning
+        run: docker build -t local-scan-image:latest .
+
+      # 5. SECURITY SCAN with Trivy (DevSecOps).
+      #    Scans the image for known vulnerabilities.
+      #    exit-code: '0' means: report findings but DO NOT fail the pipeline yet.
+      #    (Once you're comfortable, change severity handling to block on CRITICAL.)
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: local-scan-image:latest
+          format: table
+          exit-code: '0'
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH
+
+      # 6. Log in to AWS using the secrets from the GitHub vault.
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -42,18 +59,18 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # 5. Log Docker in to your ECR registry.
+      # 7. Log Docker in to your ECR registry.
       - name: Log in to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # 6. Build the image and push it to ECR.
-      #    We tag it with the git commit ID (unique) AND "latest".
-      - name: Build and push image to ECR
+      # 8. Tag the already-built image for ECR and push it.
+      - name: Tag and push image to ECR
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $REGISTRY/$ECR_REPOSITORY:latest .
+          docker tag local-scan-image:latest $REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker tag local-scan-image:latest $REGISTRY/$ECR_REPOSITORY:latest
           docker push $REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $REGISTRY/$ECR_REPOSITORY:latest
