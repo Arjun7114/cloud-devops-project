@@ -1,0 +1,57 @@
+# ===========================================================================
+#  Phase 6 — Deploy the app to Kubernetes
+#  Two objects in one file, separated by "---":
+#    1. Deployment: runs your app and keeps 2 copies alive.
+#    2. Service:    exposes it to the internet via a load balancer.
+# ===========================================================================
+
+# ----- 1. DEPLOYMENT -----
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloud-devops-app
+  labels:
+    app: cloud-devops-app
+spec:
+  replicas: 2 # run 2 copies of the app for reliability
+  selector:
+    matchLabels:
+      app: cloud-devops-app
+  template:
+    metadata:
+      labels:
+        app: cloud-devops-app
+    spec:
+      containers:
+        - name: cloud-devops-app
+          image: 934568646459.dkr.ecr.ap-south-1.amazonaws.com/cloud-devops-app:latest
+          ports:
+            - containerPort: 5000 # the app listens on port 5000 inside
+          # Health checks: Kubernetes uses these to know the app is alive.
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 15
+
+---
+# ----- 2. SERVICE -----
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloud-devops-app-service
+spec:
+  type: LoadBalancer # asks AWS for a public load balancer
+  selector:
+    app: cloud-devops-app # sends traffic to the pods above
+  ports:
+    - protocol: TCP
+      port: 80 # the public port people hit
+      targetPort: 5000 # forwarded to the app's port inside
