@@ -1,0 +1,32 @@
+# ===========================================================================
+#  Phase 7 — GitOps with Argo CD
+#  This file defines the Argo CD "Application" — it tells Argo CD to watch the
+#  k8s/ folder in this GitHub repo and keep the cluster in sync automatically.
+#  (This is the same setup done via the Argo CD dashboard, captured as code.)
+#
+#  To apply it directly:  kubectl apply -f argocd/application.yaml
+# ===========================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cloud-devops-app
+  namespace: argocd
+spec:
+  project: default
+
+  # WHERE the desired state lives: this Git repo, the k8s/ folder.
+  source:
+    repoURL: https://github.com/Arjun7114/cloud-devops-project.git
+    targetRevision: HEAD
+    path: k8s
+
+  # WHERE to deploy: this same cluster, the "default" namespace.
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+
+  # HOW to keep in sync: automatically, self-healing, and pruning old resources.
+  syncPolicy:
+    automated:
+      prune: true      # remove resources deleted from Git
+      selfHeal: true   # fix manual drift back to what Git says
