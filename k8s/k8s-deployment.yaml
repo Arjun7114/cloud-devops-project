@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
         - name: cloud-devops-app
-          image: 934568646459.dkr.ecr.ap-south-1.amazonaws.com/cloud-devops-app:latest
+          image: 129264593039.dkr.ecr.ap-south-1.amazonaws.com/cloud-devops-app:latest
           ports:
             - containerPort: 5000 # the app listens on port 5000 inside
           # Health checks: Kubernetes uses these to know the app is alive.
