@@ -68,16 +68,19 @@ A deliberately simple Python (Flask) application serves as the payload; the focu
 
 ## Screenshots
 
-> _Add your saved screenshots here._
+### CI/CD Pipeline — automated test, scan, build & push
+![CI/CD Pipeline](docs/screenshots/CICD-Pipeline.png)
 
-**Application running (served via AWS LoadBalancer)**
-`![App running](docs/screenshots/app-running.png)`
+### Kubernetes — application pods running on the cluster
+![Kubernetes pods](docs/screenshots/kubernetes-pod.png)
 
-**Argo CD — GitOps dashboard**
-`![Argo CD](docs/screenshots/argocd-dashboard.png)`
+### Argo CD — GitOps continuous delivery
+![Argo CD dashboard](docs/screenshots/argocd-1.jpeg)
+![Argo CD application detail](docs/screenshots/argocd-2.jpeg)
 
-**Grafana — cluster monitoring**
-`![Grafana](docs/screenshots/grafana-dashboard.png)`
+### Grafana — live cluster monitoring
+![Grafana dashboard](docs/screenshots/grafana-1.png)
+![Grafana metrics](docs/screenshots/grafana-2.png)
 
 ## Repository Structure
 
@@ -94,8 +97,9 @@ A deliberately simple Python (Flask) application serves as the payload; the focu
 │   └── outputs.tf
 ├── k8s/                       # Kubernetes manifests (Deployment + Service)
 │   └── k8s-deployment.yaml
-└── argocd/                    # Argo CD Application (GitOps config)
-    └── application.yaml
+├── argocd/                    # Argo CD Application (GitOps config)
+│   └── application.yaml
+└── docs/screenshots/          # Project screenshots
 ```
 
 ## How It Works
@@ -133,7 +137,7 @@ helm install monitoring prometheus-community/kube-prometheus-stack \
 
 ## Engineering Notes
 
-Provisioning EKS worker nodes surfaced a real-world networking/node-registration challenge. I diagnosed it methodically — checking node health, service quotas, endpoint access, and Kubernetes version compatibility — and made the pragmatic engineering decision to provision the working cluster with `eksctl` while retaining the Terraform infrastructure code. This mirrors real production troubleshooting: isolate the failure, weigh trade-offs, and keep the delivery moving.
+Provisioning EKS worker nodes surfaced a real-world node-registration challenge. I diagnosed it methodically — checking node health, service quotas, cluster endpoint access, and Kubernetes version compatibility — and made the pragmatic engineering decision to provision the working cluster with `eksctl` while retaining the Terraform infrastructure code. This mirrors real production troubleshooting: isolate the failure, weigh trade-offs, and keep the delivery moving.
 
 ---
 
